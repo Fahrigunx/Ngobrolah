@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overchat AI - Vercel Edition</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .chat-container {
+            background: #ffffff;
+            width: 95%;
+            max-width: 700px;
+            height: 80vh;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .header {
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        #chat-output {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #ffffff;
+            line-height: 1.6;
+            font-size: 15px;
+            color: #333;
+            white-space: pre-wrap;
+            border-bottom: 1px solid #eee;
+        }
+        .input-area {
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            background: #f9f9f9;
+        }
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 15px;
+            transition: border 0.3s;
+        }
+        input[type="text"]:focus {
+            border-color: #007bff;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .user-msg {
+            color: #007bff;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .ai-msg {
+            color: #222;
+            margin-bottom: 20px;
+            border-left: 3px solid #007bff;
+            padding-left: 10px;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="header">Overchat AI Messenger</div>
+        <div id="chat-output">Halo! Ada yang bisa saya bantu hari ini?</div>
+        
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Ketik pesan Anda di sini..." autocomplete="off">
+            <button id="send-btn">Kirim</button>
+        </div>
+    </div>
+
+    <script>
+        const chatOutput = document.getElementById('chat-output');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        async function overchat(question) {
+            try {
+                // Memanggil API internal Vercel (/api/chat.js)
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: question })
+                });
+
+                if (!response.ok) throw new Error('Gagal menghubungi server.');
+
+                // Menyiapkan kontainer untuk jawaban AI
+                const aiContainer = document.createElement('div');
+                aiContainer.className = 'ai-msg';
+                aiContainer.textContent = 'AI: ';
+                chatOutput.appendChild(aiContainer);
+
+                // Membaca Stream (Efek Mengetik)
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    
+                    // Simpan sisa baris yang belum lengkap
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        const trimmedLine = line.trim();
+                        if (trimmedLine.startsWith('data: ') && !trimmedLine.includes('[DONE]')) {
+                            try {
+                                const jsonStr = trimmedLine.replace('data: ', '');
+                                const data = JSON.parse(jsonStr);
+                                const content = data.choices[0]?.delta?.content || "";
+                                
+                                // Tambahkan teks ke layar secara real-time
+                                aiContainer.textContent += content;
+                                chatOutput.scrollTop = chatOutput.scrollHeight;
+                            } catch (e) {
+                                // Abaikan jika ada baris yang bukan JSON valid
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                chatOutput.innerHTML += `<div class="error">Error: ${err.message}</div>`;
+            }
+        }
+
+        // Fungsi untuk mengirim pesan
+        async function handleSend() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            // Tampilkan pesan user
+            chatOutput.innerHTML += `<div class="user-msg">Anda: ${text}</div>`;
+            userInput.value = '';
+            
+            // Nonaktifkan input selama proses
+            sendBtn.disabled = true;
+            userInput.disabled = true;
+
+            await overchat(text);
+
+            sendBtn.disabled = false;
+            userInput.disabled = false;
+            userInput.focus();
+        }
+
+        // Event Listeners
+        sendBtn.addEventListener('click', handleSend);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+    </script>
+</body>
+</html>
+
