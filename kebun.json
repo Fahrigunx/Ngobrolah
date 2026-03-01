@@ -1,0 +1,22 @@
+[
+  { "name": "Capung", "price": 100000, "diff": 5 },
+  { "name": "Belalang Sembah", "price": 100000, "diff": 8 },
+  { "name": "Jangkrik", "price": 100000, "diff": 10 },
+  { "name": "Kupu-kupu Malam", "price": 100000, "diff": 12 },
+  { "name": "Katak Sawah", "price": 100000, "diff": 15 },
+  { "name": "Tikus Sawah", "price": 100000, "diff": 18 },
+  { "name": "Burung Gereja", "price": 100000, "diff": 20 },
+  { "name": "Kadal Kebun", "price": 100000, "diff": 22 },
+  { "name": "Burung Pipit", "price": 100000, "diff": 25 },
+  { "name": "Tokek Besar", "price": 100000, "diff": 28 },
+  { "name": "Tupai Kelapa", "price": 100000, "diff": 30 },
+  { "name": "Burung Perkutut", "price": 100000, "diff": 32 },
+  { "name": "Kelinci Liar", "price": 100000, "diff": 35 },
+  { "name": "Ayam Hutan Muda", "price": 100000, "diff": 38 },
+  { "name": "Musang Pandan", "price": 100000, "diff": 45 },
+  { "name": "Garangan", "price": 100000, "diff": 48 },
+  { "name": "Kucing Garong", "price": 100000, "diff": 50 },
+  { "name": "Landak Kecil", "price": 105000, "diff": 55 },
+  { "name": "Ular Sawah", "price": 110000, "diff": 58 },
+  { "name": "Biawak Kebun", "price": 115000, "diff": 60 }
+]
